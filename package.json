@@ -1,0 +1,47 @@
+{
+  "name": "DokodemoLLM",
+  "productName": "DokodemoLLM",
+  "version": "1.0.0",
+  "description": "Mac向けどこでもLLM実行ユーティリティ",
+  "author": "Your Name",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "dist": "electron-builder --mac",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.example.dokodemollm",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": "dmg"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "input_preload.js",
+      "input_renderer.js",
+      "input.html",
+      "renderer.html",
+      "preload.js",
+      "confirmation_preload.js",
+      "confirmation_renderer.js",
+      "confirmation.html"
+    ],
+    "extraResources": [
+      {
+        "from": "bin/DokodemoLLMO",
+        "to": "bin"
+      },
+      {
+        "from": "bin/DokodemoLLMG",
+        "to": "bin"
+      }
+    ]
+  }
+}
