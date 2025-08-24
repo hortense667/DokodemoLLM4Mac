@@ -1,5 +1,8 @@
 # DokodemoLLM
 
+(c) 2025 Satoshi Endo
+https://x.com/hortense667 https://ascii.jp/serialarticles/1225476/
+
 macOS向けどこでもLLM実行ユーティリティです。  
 任意のアプリケーションでテキストを選択し、簡単なショートカットキーを押すだけで、GeminiやOpenAI(GPT)といった大規模言語モデル（LLM）を呼び出して、テキストの処理（翻訳、要約、校正など）を行わせることができます。
 
@@ -28,6 +31,20 @@ macOS向けどこでもLLM実行ユーティリティです。
         4.  パスワードを求められたら入力し、アプリケーションの実行を許可します。
 
 ## 初期設定：APIキーの設定
+
+### APIキーの取得
+
+このアプリケーションを利用するには、GoogleとOpenAI、両方またはいずれかのAPIキーが必要です。
+
+-   **Google Gemini APIキー**:
+    -   [Google AI Studio](https://aistudio.google.com/app/apikey)にアクセスし、GoogleアカウントでログインしてAPIキーを作成してください。
+
+-   **OpenAI APIキー**:
+    -   [OpenAI Platform](https://platform.openai.com/api-keys)にアクセスし、アカウントを作成・ログインしてAPIキーを発行してください。
+
+取得したAPIキーは、次の手順で設定ファイルに保存します。
+
+### 設定ファイルの作成・編集
 
 本アプリケーションを使用するには、専用の設定ファイルにAPIキーを保存する必要があります。この設定は、最初の一度だけ必要です。
 
@@ -68,8 +85,8 @@ macOS向けどこでもLLM実行ユーティリティです。
     -   `Applications` フォルダから `DokodemoLLM` をダブルクリックして起動します。
     -   **注意**: このアプリはメニューバーやDockにアイコンが表示されない、バックグラウンドで動作する常駐アプリです。
 
-2.  **テキストを選択**:
-    -   テキストエディタ、ブラウザ、メモ帳など、任意のアプリケーションで処理したいテキストを選択（ハイライト）します。
+2.  **テキストを選択してコピー**:
+    -   テキストエディタ、ブラウザ、メモ帳など、任意のアプリケーションで処理したいテキストを選択（ハイライト）し、`Command (⌘) + C` を押してクリップボードにコピーします。
 
 3.  **ショートカットキーを押す**:
     -   **Geminiを使いたい場合**: `Command (⌘) + Option (⌥) + Shift (⇧) + G`
@@ -81,7 +98,7 @@ macOS向けどこでもLLM実行ユーティリティです。
 
 5.  **結果の確認と貼り付け**:
     -   LLMからの処理結果が確認ウィンドウに表示されます。
-    -   内容を確認して `OK` ボタンを押すと、元のアプリケーションのカーソル位置に結果が貼り付けられます。（内部的には結果がクリップボードにコピーされ、元のアプリにペースト操作が送られます）
+    -   内容を確認して `OK` ボタンを押すと、結果がクリップボードにコピーされ、元のアプリケーションが自動的に最前面に表示されます。その後、ご自身で `Command (⌘) + V` を押して結果を貼り付けてください。
     -   `CANCEL` を押すと、何もせずにウィンドウが閉じます。
 
 ### 便利な使い方：Web検索
@@ -97,62 +114,14 @@ macOS向けどこでもLLM実行ユーティリティです。
 
 このソフトウェアは [MITライセンス](LICENSE) の下で公開されています。
 
----
 
-## 開発者向け情報：ソースからのビルド
+## 作者
 
-このアプリケーションを自分でビルド・改変したい開発者は、以下の手順に従ってください。
+**Satoshi Endo @hortense667**
 
-### 1. 必要なツール
+- GitHub: [@hortense667](https://github.com/hortense667)
+- X: [@hortense667](https://x.com/hortense667)
 
--   Node.js (v18以降を推奨)
--   Python (v3.9以降を推奨)
--   Git
-
-### 2. セットアップ
-
-```bash
-# リポジトリをクローン
-git clone https://github.com/yourusername/DokodemoLLM.git
-cd DokodemoLLM
-
-# Node.jsの依存関係をインストール
-npm install
-```
-
-### 3. Python実行ファイルのビルド
-
-アプリケーションは、内部で `PyInstaller` によって実行ファイル化されたPythonスクリプトを呼び出します。以下の手順で、この実行ファイルを作成します。
-
-```bash
-# Python仮想環境の作成と有効化
-python3 -m venv venv
-source venv/bin/activate
-
-# 必要なPythonライブラリをインストール
-pip install -r requirements.txt
-pip install pyinstaller
-
-# 実行ファイルをビルド
-pyinstaller DokodemoLLMG.spec
-pyinstaller DokodemoLLMO.spec
-
-# ビルドした実行ファイルをプロジェクトルートにコピー
-cp dist/DokodemoLLMG .
-cp dist/DokodemoLLMO .
-
-# 仮想環境を無効化
-deactivate
-```
-
-### 4. 開発モードでの実行
-
-```bash
-npm start
-```
-
-### 5. 配布パッケージ (.dmg) の作成
-
-```bash
-npm run dist
-``` 
+## 免責事項
+1. このソフトウェアの利用によって生じる損害について、一切の責任を負うものではありません。
+2. このソフトウェアの使用方法などに関する質問に答えることや動作内容についてサポートを負いません。
