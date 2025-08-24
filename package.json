@@ -2,46 +2,89 @@
   "name": "DokodemoLLM",
   "productName": "DokodemoLLM",
   "version": "1.0.0",
-  "description": "Mac向けどこでもLLM実行ユーティリティ",
-  "author": "Your Name",
+  "description": "Mac向けどこでもLLM実行ユーティリティ - 任意のアプリからショートカットでLLMを利用",
+  "author": "Satoshi Endo",
   "main": "main.js",
+  "homepage": "https://github.com/yourusername/DokodemoLLM",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
     "dist": "electron-builder --mac",
-    "postinstall": "electron-builder install-app-deps"
+    "dist-mas": "electron-builder --mac mas",
+    "postinstall": "electron-builder install-app-deps",
+    "clean": "rm -rf dist",
+    "setup": "./install_dokodemo.sh"
   },
+  "keywords": [
+    "LLM",
+    "AI",
+    "Gemini",
+    "OpenAI",
+    "Mac",
+    "Electron",
+    "Productivity"
+  ],
   "devDependencies": {
-    "electron": "^27.0.0",
+    "electron": "27.3.11",
     "electron-builder": "^26.0.12"
   },
   "build": {
     "appId": "com.example.dokodemollm",
+    "productName": "DokodemoLLM",
+    "copyright": "Copyright © 2025 Satoshi Endo",
     "mac": {
       "category": "public.app-category.utilities",
-      "target": "dmg"
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["arm64"]
+        }
+      ],
+      "icon": "assets/icon.icns",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null,
+      "extendInfo": {
+        "LSUIElement": true,
+        "NSAppleEventsUsageDescription": "このアプリは他のアプリケーションと連携するためにAppleEventsを使用します"
+      }
+    },
+    "dmg": {
+      "title": "DokodemoLLM ${version}"
     },
     "files": [
-      "main.js",
-      "preload.js",
-      "input_preload.js",
-      "input_renderer.js",
-      "input.html",
-      "renderer.html",
-      "preload.js",
-      "confirmation_preload.js",
-      "confirmation_renderer.js",
-      "confirmation.html"
+      "**/*",
+      "!**/.venv{,/**}",
+      "!**/openai-env{,/**}",
+      "!**/venv{,/**}",
+      "!**/node_modules/.cache{,/**}",
+      "!**/*.pyc",
+      "!**/__pycache__",
+      "!**/dist{,/**}",
+      "!**/build{,/**}",
+      "!**/build_distribution.py",
+      "!**/pyinstaller.py"
     ],
     "extraResources": [
       {
-        "from": "bin/DokodemoLLMO",
-        "to": "bin"
+        "from": "DokodemoLLMG",
+        "to": "DokodemoLLMG"
       },
       {
-        "from": "bin/DokodemoLLMG",
-        "to": "bin"
+        "from": "DokodemoLLMO",
+        "to": "DokodemoLLMO"
       }
-    ]
-  }
+    ],
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/DokodemoLLM.git"
+  },
+  "license": "MIT"
 }

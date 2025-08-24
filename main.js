@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, clipboard, ipcMain } = require('electron');
+const { app, BrowserWindow, globalShortcut, clipboard, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -123,6 +123,8 @@ function getCurrentApp() {
 
 function createConfirmationWindow(result) {
   return new Promise((resolve) => {
+    let resolved = false;
+
     console.log('確認ウィンドウを作成中...');
     
     // preloadファイルの存在確認
@@ -147,6 +149,45 @@ function createConfirmationWindow(result) {
         preload: preloadPath
       }
     });
+
+    const resolveOnce = (value) => {
+      if (!resolved) {
+        resolved = true;
+        resolve(value);
+      }
+    };
+
+    const cleanup = () => {
+      ipcMain.removeListener('confirm-ok', onOk);
+      ipcMain.removeListener('confirm-cancel', onCancel);
+    };
+
+    const onOk = () => {
+      console.log('OK が押されました');
+      cleanup();
+      if (!confirmWindow.isDestroyed()) {
+        confirmWindow.close();
+      }
+      resolveOnce('ok');
+    };
+
+    const onCancel = () => {
+      console.log('CANCEL が押されました');
+      cleanup();
+      if (!confirmWindow.isDestroyed()) {
+        confirmWindow.close();
+      }
+      resolveOnce('cancel');
+    };
+
+    ipcMain.once('confirm-ok', onOk);
+    ipcMain.once('confirm-cancel', onCancel);
+
+    confirmWindow.on('closed', () => {
+      console.log('確認ウィンドウが閉じられました');
+      cleanup();
+      resolveOnce('cancel');
+    });
     
     confirmWindow.loadFile('confirmation.html').then(() => {
       console.log('HTMLファイルの読み込み成功');
@@ -168,25 +209,6 @@ function createConfirmationWindow(result) {
         confirmWindow.webContents.send('set-result', result);
         console.log('結果を送信:', result);
       }, 100);
-    });
-    
-    // ウィンドウが閉じられたときの処理
-    confirmWindow.on('closed', () => {
-      console.log('確認ウィンドウが閉じられました');
-      resolve('cancel');
-    });
-    
-    // IPCハンドラー（このウィンドウ専用）
-    ipcMain.once('confirm-ok', () => {
-      console.log('OK が押されました');
-      confirmWindow.close();
-      resolve('ok');
-    });
-    
-    ipcMain.once('confirm-cancel', () => {
-      console.log('CANCEL が押されました');
-      confirmWindow.close();
-      resolve('cancel');
     });
   });
 }
@@ -254,42 +276,54 @@ ipcMain.handle('submit-input', async (event, userPrompt) => {
   const combinedText = `${userPrompt}---USER_TEXT---${selectedText}`;
   console.log('結合したテキスト:', combinedText);
   
-  // 結合したテキストをクリップボードにセット
-  clipboard.writeText(combinedText);
-  
-  // 実行ファイルのパスを決定
-  const pyPath = path.join(__dirname, process.platform === 'win32' ? `${currentExecutable}.exe` : currentExecutable);
+  // 実行ファイルのパスを決定 (パッケージ化されたアプリと開発環境の両方で動作するように修正)
+  let pyPath;
+  if (app.isPackaged) {
+    pyPath = path.join(process.resourcesPath, process.platform === 'win32' ? `${currentExecutable}.exe` : currentExecutable);
+  } else {
+    pyPath = path.join(__dirname, process.platform === 'win32' ? `${currentExecutable}.exe` : currentExecutable);
+  }
   console.log('実行ファイル:', pyPath);
   
   // ファイルの存在確認
   if (!fs.existsSync(pyPath)) {
     console.error('実行ファイルが見つかりません:', pyPath);
+    dialog.showErrorBox('実行エラー', `実行ファイルが見つかりません: ${pyPath}`);
     return;
   }
   
   const py = spawn(pyPath);
   
+  // Pythonスクリプトに標準入力でデータを渡す
+  py.stdin.write(combinedText);
+  py.stdin.end();
+
   // プロセス起動エラーの処理
   py.on('error', (error) => {
     console.error('Python プロセス起動エラー:', error);
+    dialog.showErrorBox('実行エラー', `プロセスの起動に失敗しました: ${error.message}`);
     return;
   });
   
   let result = '';
-  
-  // Pythonプロセスの標準出力を取得
   py.stdout.on('data', (data) => {
     result += data.toString();
   });
   
-  // Pythonプロセスのエラー出力を取得
+  let errorLog = '';
   py.stderr.on('data', (data) => {
     console.error(`Python stderr: ${data}`);
+    errorLog += data.toString();
   });
   
   py.on('close', async (code) => {
     console.log(`Python exit code: ${code}`);
     console.log('Python result:', result);
+
+    if (code !== 0 || errorLog) {
+      dialog.showErrorBox('Pythonスクリプトエラー', `エラーが発生しました。\nCode: ${code}\nError: ${errorLog}`);
+      return;
+    }
   
     if (result.trim()) {
       const userChoice = await createConfirmationWindow(result);
@@ -309,6 +343,8 @@ ipcMain.handle('submit-input', async (event, userPrompt) => {
           console.error('元のテキスト貼り付けエラー:', error);
         });
       }
+    } else {
+        dialog.showErrorBox('結果取得エラー', 'LLMからの結果が空でした。');
     }
   });
 });

@@ -5,13 +5,36 @@
 
 # GeminiのAPIを呼び出すプログラムです
 # 環境変数「GEMINI_API_KEY」にAPIキーをセットしておいてください。
-# プロンプトをクリップボードにセットして呼び出す
+# プロンプトを標準入力から受け取る
 # 形式は、{プロンプト}---USER_TEXT---{処理対象テキスト}
 # 結果は標準出力されます。
 
 import os
 import google.generativeai as genai
-import pyperclip
+import sys
+import os
+from pathlib import Path
+
+def get_api_key(key_name):
+    """環境変数または設定ファイルからAPIキーを取得する"""
+    # 1. 環境変数から試す
+    api_key = os.getenv(key_name)
+    if api_key:
+        return api_key
+
+    # 2. 設定ファイルから試す (macOSの推奨設定場所)
+    try:
+        config_dir = Path.home() / "Library/Application Support/DokodemoLLM"
+        config_path = config_dir / "api_keys.txt"
+        if config_path.exists():
+            with open(config_path, "r") as f:
+                for line in f:
+                    if line.strip().startswith(f"{key_name}="):
+                        return line.split("=", 1)[1].strip()
+    except Exception:
+        pass  # エラーの場合は次のステップへ
+
+    return None
 
 import requests
 from bs4 import BeautifulSoup
@@ -43,11 +66,11 @@ def search_web(query):
     return "\n".join(results), url_list
 
 def main():
-    # 1) クリップボードからペイロード取得
+    # 1) 標準入力からペイロード取得
     try:
-        data = pyperclip.paste()
+        data = sys.stdin.read()
     except Exception as e:
-        print("Clipboard read error:", e)
+        print("Stdin read error:", e)
         return
 
     # 2) ペイロード分割
@@ -77,8 +100,13 @@ def main():
         append_citation = True
         citation_urls = cited_urls
 
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-2.5-flash")  # 最新モデルを指定
+    api_key = get_api_key("GEMINI_API_KEY")
+    if not api_key:
+        print("APIキーが見つかりません。~/Library/Application Support/DokodemoLLM/api_keys.txt ファイルを作成してください。")
+        return
+        
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-1.5-flash")  # モデルを更新
     try:
         response = model.generate_content(
             [ 
