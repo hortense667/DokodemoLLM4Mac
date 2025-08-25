@@ -1,4 +1,4 @@
-# DokodemoLLM4Mac
+# DokodemoLLM4Mac / どこでもLLM4Mac
 
 (c) 2025 Satoshi Endo
 https://x.com/hortense667 https://ascii.jp/serialarticles/1225476/
